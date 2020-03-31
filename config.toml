@@ -1,0 +1,83 @@
+baseurl = "https://f110.jp"
+languageCode = "ja"
+Title = "f110's weblog"
+# Copyright notice. This is displayer in the footer.
+copyright = "&copy; 2020 Fumihiro Ito"
+
+# Google Analytics API key.
+googleAnalytics = ""
+
+pygmentsUseClasses = true
+
+[params]
+  paginate = 10
+  twitter = ""
+  facebook = ""
+  instagram = ""
+  googleplus = "" # https://plus.google.com/u/0/xxxxxx
+  github = "f110"
+  gitlab = ""
+  npm = ""
+  codepen = ""
+  dribbble = ""
+  fivehundredpx = "" # 500px
+  flickr = ""
+  pinterest = ""
+  tumblr = ""
+  vimeo = ""
+  youtube = ""
+  linkedin = ""
+  medium = "@f110"
+  # Disqus shortname
+  disqus = ""
+  author = "Fumihiro Ito"
+  authorwebsite = "https://f110.jp"
+  avatar = ""
+  contact = "mailto:fmhrit@gmail.com"
+  bio = "I'm a software engineer working at Tokyo, Japan."
+  # Short subtitle/tagline. This is displayed in the header.
+  subtitle = ""
+  # Logo image. This is displayed ogp image.
+  logo = ""
+  favicon = ""
+  custom_css = ["/css/syntax.css"]
+
+[[menu.main]]
+    name = "Blog"
+    url = "/"
+    weight = 1
+
+[[menu.main]]
+    name = "About"
+    url = "/about"
+    weight = 2
+
+[[menu.main]]
+    name = "Tags"
+    url = "/tags"
+    weight = 3
+
+[related]
+  # Only include matches with rank >= threshold. This is a normalized rank between 0 and 100.
+  threshold = 100
+
+  # To get stable "See also" sections we, by default, exclude newer related pages.
+  includeNewer = false
+
+  # Will lower case keywords in both queries and in the indexes.
+  toLower = false
+
+  [[related.indices]]
+  name = "keywords"
+  weight = 150
+  [[related.indices]]
+  name  = "author"
+  toLower = true
+  weight = 30
+  [[related.indices]]
+  name  = "tags"
+  weight = 100
+  [[related.indices]]
+  name  = "date"
+  weight = 10
+  pattern = "2017"
