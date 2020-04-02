@@ -2,7 +2,7 @@
 title: Homecluster basic
 date: 2020-04-02
 isCJKLanguage: true
-tags: ["kubernetes", "homecluster"]
+tags: ["Kubernetes", "homecluster"]
 ---
 
 自宅の Kubernetes クラスタをどうやって構成するかという話。
