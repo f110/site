@@ -9,6 +9,7 @@ isCJKLanguage: true
 
 .. section-numbering::
 .. contents::
+    :local:
 
 .. image:: monorepo.png
 

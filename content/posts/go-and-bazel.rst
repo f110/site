@@ -244,5 +244,3 @@ Bazelは導入するために多くのことを学ぶ必要があります。
 
 OSSにもBazelを採用しているプロジェクトがいっぱいあるのでgithubには参考にできるようなものがたくさんあります。
 Bazelにやらせたいと思っていることを実現しているプロジェクトを探して真似してみたりするとルールの書き方が分かってくると思います。
-
-The Go gopher was designed by `Renee French <https://reneefrench.blogspot.com>`_

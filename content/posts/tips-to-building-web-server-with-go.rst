@@ -118,5 +118,3 @@ TLSのハンドシェイクで ``ClientHello`` メッセージを受け取った
 
 自作プロキシでは証明書はk8sのSecretをVolumeとしてマウントして読み込むので、このVolumeの変更をinotifyで監視しています。
 ファイルに変更があれば証明書を読み込み、成功した場合はロックを取得し ``GetCertificate`` が返す証明書を置き換えます。
-
-The Go gopher was designed by `Renee French <https://reneefrench.blogspot.com>`_

@@ -93,7 +93,7 @@ https://github.com/f110/styx にその変更を加えたコードを置いてお
     ax.xaxis.set_major_locator(dates.HourLocator(interval = 3))
     ax.xaxis.set_major_formatter(dates.DateFormatter("%m/%d %H:%M"))
     ax.grid(True)
-    plot.legend()
+    ax.legend()
 
     plot.setp(ax.get_xticklabels(), rotation = 45)
     plot.show()

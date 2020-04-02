@@ -18,7 +18,7 @@ BazelでGoの依存ライブラリを管理する方法は2つあります。
 見えない依存
 ================
 
-Bazel で Go をビルドする際は [#rulesgo]_ と [#gazelle]_ を利用していることでしょう。
+Bazel で Go をビルドする際は rules_go [#rulesgo]_ と gazelle [#gazelle]_ を利用していることでしょう。
 
 rules_go 自身が `依存しているライブラリ <https://github.com/bazelbuild/rules_go/blob/4a42b4092abdc60d14419a79afaec3659fbceb26/go/workspace.rst#go-rules-dependencies>`_ もBazelによって管理されるため同じライブラリに自分のソフトウェアが依存している場合は競合します。
 うまく競合しなかった場合は問題ありません。その時は幸せに利用できます。
