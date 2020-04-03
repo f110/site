@@ -1,4 +1,4 @@
-baseurl = "https://f110.jp"
+baseurl = "https://f110.jp/"
 languageCode = "ja"
 Title = "f110's weblog"
 # Copyright notice. This is displayer in the footer.
