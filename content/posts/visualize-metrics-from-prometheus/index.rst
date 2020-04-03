@@ -3,7 +3,6 @@ title: Prometheusにあるメトリクスでグラフを描く
 date: 2020-04-03
 isCJKLanguage: true
 tags: ["Prometheus", "matplotlib"]
-draft: true
 ---
 
 Prometheusが収集しているメトリクスから少しだけまともなグラフの画像を生成する方法です。
