@@ -5,7 +5,7 @@ Title = "f110's weblog"
 copyright = "&copy; 2020 Fumihiro Ito"
 
 # Google Analytics API key.
-googleAnalytics = ""
+googleAnalytics = "UA-37357730-2"
 
 pygmentsUseClasses = true
 
