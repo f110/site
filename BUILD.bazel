@@ -1,0 +1,21 @@
+load("@build_stack_rules_hugo//hugo:rules.bzl", "hugo_site")
+
+hugo_site(
+    name = "site",
+    config = "config.toml",
+    content = [
+        "//content:content",
+    ],
+    hugo = "@dev_f110_hugo//:hugo",
+    quiet = False,
+    verbose = True,
+    theme = "//themes/pickles",
+)
+
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+
+pkg_tar(
+    name = "site_tar",
+    srcs = [":site"],
+    strip_prefix = "site",
+)
