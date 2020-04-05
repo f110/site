@@ -1,5 +1,0 @@
-filegroup(
-    name = "content",
-    srcs = glob(["abount/index.md"]),
-    visibility = ["//visibility:public"],
-)
