@@ -75,3 +75,5 @@ Factorioのマルチプレイのサーバーは必要なリソースが少なく
     max(container_memory_usage_bytes{namespace="factorio",container="factorio"}) by (container)
 
 非常にエコなゲームサーバーでとても良くできています。
+
+なお上記のグラフを作成したスクリプトはそれぞれGitHubにPushしてあります。 `CPU <https://github.com/f110/site/blob/master/content/posts/factorio-headless/cpu.py>`_ / `Mem <https://github.com/f110/site/blob/master/content/posts/factorio-headless/mem.py>`_
