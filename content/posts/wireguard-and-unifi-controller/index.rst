@@ -3,7 +3,6 @@ title: "Wireguard and Unifi Controller"
 date: 2020-04-21
 isCJKLanguage: true
 tags: ["WireGuard", "Home Network", "UniFi"]
-draft: true
 ---
 
 UniFi Controllerは内部に持っているMongoDBに設定が保存されており、プロビジョニング（設定の反映）を行うとCLIから行ったものは消えてしまいます。
