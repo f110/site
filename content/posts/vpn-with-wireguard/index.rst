@@ -2,10 +2,18 @@
 title: "VPNをWireGuardにした"
 date: 2020-04-18
 isCJKLanguage: true
-tags: ["WireGuard", "Home Network"]
+tags: ["WireGuard", "Home Network", "UniFi"]
 ---
 
-自宅には信用できない経路を使わざるおえない時用にVPNを張れるようにしています。
+**追記(2020/04/21)**
+
+下記の手順ではUniFi Controllerでプロビジョニングを設定すると多くの設定が消えます。
+
+UniFi Controllerと共存を目指す場合は `次のポスト <../wireguard-and-unifi-controller>`_ も参照してください。
+
+**追記ここまで**
+
+自宅には信用できない経路を使わざる負えない時用にVPNを張れるようにしています。
 今まではUniFi Security Gatewayが持っているVPN機能（L2TP over IPSec）を使っていたのですが、これを `WireGuard <https://www.wireguard.com/>`_ も使えるようにしました。
 
 前提
