@@ -115,10 +115,10 @@ kubeadm によるセットアップ
 Calicoのインストール
 ------------------------
 
-ネットワークプラグインには Calico を利用しますが配布されているマニフェストはIPIPモードになっています。
-特にこだわりがなければIPIPモードのまま動かすのがいいでしょう。
+ネットワークプラグインには Calico を利用しますが配布されているマニフェストはIPIPが有効になっています。
+特にこだわりがなければそのまま動かすのがいいでしょう。
 
-ただ、BGPモードで動かすだけであればそれほど難しいことはないのとせっかくなのでBGPモードで動かします。
+自宅クラスタではIPIPは不要なのでoffにしておきます。
 
 マニフェストをダウンロードし編集します。
 
@@ -129,7 +129,7 @@ Calicoのインストール
 ここで行う編集は3つ。
 
 #. PodのIPレンジを決める
-#. IPIPモードを切る
+#. IPIPを切る
 #. XDPをdisableにする
 
 .. code:: diff
@@ -152,7 +152,7 @@ Calicoのインストール
     -             - name: CALICO_IPV4POOL_CIDR
     -               value: "192.168.0.0/16"
     +            - name: CALICO_IPV4POOL_CIDR
-    +              value: "192.168.0.0/16"
+    +              value: "192.168.0.1/16"
                  # Disable file logging so `kubectl logs` works.
                  - name: CALICO_DISABLE_FILE_LOGGING
                    value: "true"
