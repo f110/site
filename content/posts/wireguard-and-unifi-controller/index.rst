@@ -128,9 +128,9 @@ UniFi Controllerのデプロイはhelmを使っていて `Chart はstable <https
 chartの修正
 --------------
 
-1. ConfigMapで ``config.gateway.json`` を保持する
-1. Deploymentで ``/unifi/data/sites/<site_id>/config.gateway.json`` にマウントする
-1. DeploymentのPodTemplateにjsonファイルのハッシュ値を書き込んでおいて変更されたらPodを再作成するようにする
+#. ConfigMapで ``config.gateway.json`` を保持する
+#. Deploymentで ``/unifi/data/sites/<site_id>/config.gateway.json`` にマウントする
+#. DeploymentのPodTemplateにjsonファイルのハッシュ値を書き込んでおいて変更されたらPodを再作成するようにする
 
 という変更を加えます。
 
