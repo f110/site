@@ -2,7 +2,7 @@
 title: MetalLBからBGPで広報する
 date: 2020-04-23
 isCJKLanguage: true
-tags: ["Kubernetes", "homeclaster"]
+tags: ["Kubernetes", "homecluster", "UniFi"]
 ---
 
 自宅のKubernetesクラスタはLoadBalancerとしてMetalLBを使っていてExternalIPはARPを使って広報しています。
