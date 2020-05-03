@@ -1,6 +1,6 @@
 ---
 title: "Ubuntu 20.04へアップデート"
-date: 2020-05-04
+date: 2020-05-04T03:10:36+09:00
 isCJKLanguage: true
 tags: ["Ubuntu"]
 ---
