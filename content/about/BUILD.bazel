@@ -1,0 +1,5 @@
+filegroup(
+    name = "files",
+    srcs = ["index.md"],
+    visibility = ["//visibility:public"],
+)

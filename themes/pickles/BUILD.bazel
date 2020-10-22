@@ -1,0 +1,8 @@
+load("@build_stack_rules_hugo//hugo:rules.bzl", "hugo_theme")
+
+hugo_theme(
+    name = "pickles",
+    theme_name = "pickles",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
