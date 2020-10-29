@@ -5,16 +5,13 @@ isCJKLanguage: true
 tags: ["Bazel", "Go"]
 ---
 
-2020年10月10日に開催された `Go Conference'20 in Autumn SENDAI <https://sendai.gocon.jp>`_ で Bazel の話をしてきました。
+2020年10月10日に開催された [Go Conference'20 in Autumn SENDAI](https://sendai.gocon.jp) で Bazel の話をしてきました。
 
-.. raw:: html
-
-    <script async class="speakerdeck-embed" data-id="ba34b537f08c4478bf399ddfa272f052" data-ratio="1.77777777777778" src="//speakerdeck.com/assets/embed.js"></script>
+<script async class="speakerdeck-embed" data-id="ba34b537f08c4478bf399ddfa272f052" data-ratio="1.77777777777778" src="//speakerdeck.com/assets/embed.js"></script>
 
 Bazel を全く知らないもしくは名前だけは知っているといった方に向けて Bazel の概要と利用する場合のメリット・デメリットと Go のプロジェクトで利用する方法について紹介しました。
 
-感想
-=======
+# 感想
 
 個人としては初めてのオンラインでの登壇でした。
 

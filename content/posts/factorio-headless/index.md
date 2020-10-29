@@ -13,22 +13,21 @@ Factorioは公式がマルチプレイ用のサーバーを提供してくれて
 
 幸いうちにはk8sクラスタがあってこれが24時間稼働しているのとFactorioのコミュニティがdockerコンテナをメンテしてくれているのでk8sで動かしています。
 
-マニフェスト
-================
+# マニフェスト
 
-`Helm Chart <https://github.com/helm/charts/tree/master/stable/factorio>`_ はあえて使っていなくて自分でマニフェストを書いています。
+[Helm Chart](https://github.com/helm/charts/tree/master/stable/factorio) はあえて使っていなくて自分でマニフェストを書いています。
 
-.. code::
-
-    factorio
-    ├── base
-    │   ├── kustomization.yaml
-    │   ├── service.yaml
-    │   └── statefulset.yaml
-    └── map-name
-        ├── kustomization.yaml
-        ├── server-adminlist.json
-        └── server-settings.json
+```
+factorio
+├── base
+│   ├── kustomization.yaml
+│   ├── service.yaml
+│   └── statefulset.yaml
+└── map-name
+    ├── kustomization.yaml
+    ├── server-adminlist.json
+    └── server-settings.json
+```
 
 複数のマップデータを持てるようにする（マップごとに別のプロセスを起動しないといけない）ためにbaseとそれぞれのマップでディレクトリを分けていて
 kustomizeでマニフェストをビルドするようにしています。
@@ -42,8 +41,7 @@ ServiceとStatefulSetだけで動く単純なアプリケーションで何か�
 これだとFactorioのプロセスに脆弱性があった場合に侵入を許しやすくなってしまうので将来的には認証の仕組みを入れる予定です。
 この認証の仕組みはFactorioのゲームパスワードとは違って、そもそもプレイする人以外（信頼したユーザー以外）のパケットを受け取らないようにします。
 
-マップの永続化
-================
+# マップの永続化
 
 マップデータは当然永続化しないといけなくてゲームサーバーの再起動などで失われることがあるととても悲しくなります。
 
@@ -51,8 +49,7 @@ ServiceとStatefulSetだけで動く単純なアプリケーションで何か�
 この複製は全て自宅の中にあるので全ノードを消失するような事故が起きるとデータを失いますが、1ノードくらいの消失であればまったく問題ありません。
 1台くらい壊れても残りのマシンでサービスが継続できます。
 
-パフォーマンス
-================
+# パフォーマンス
 
 Factorioのマルチプレイのサーバーは必要なリソースが少なくてまったくCPUもメモリも使いません。
 おそらくRaspberry Piのような計算資源が潤沢ではないノードだったとしても問題なくプレイできるでしょう。
@@ -60,20 +57,18 @@ Factorioのマルチプレイのサーバーは必要なリソースが少なく
 一応2コアでLimitをかけていますが1コア（1000m）でも全く問題ないです。
 メモリも512MBあれば十分です。
 
-.. figure:: cpu.svg
-    :width: 100%
+![CPU](./cpu.svg)
 
-.. code::
+```
+avg(irate(container_cpu_usage_seconds_total{namespace="factorio",container="factorio"}[5m])) by (container)
+```
 
-    avg(irate(container_cpu_usage_seconds_total{namespace="factorio",container="factorio"}[5m])) by (container)
+![Memory](./mem.svg)
 
-.. figure:: mem.svg
-    :width: 100%
-
-.. code::
-
-    max(container_memory_usage_bytes{namespace="factorio",container="factorio"}) by (container)
+```
+max(container_memory_usage_bytes{namespace="factorio",container="factorio"}) by (container)
+```
 
 非常にエコなゲームサーバーでとても良くできています。
 
-なお上記のグラフを作成したスクリプトはそれぞれGitHubにPushしてあります。 `CPU <https://github.com/f110/site/blob/master/content/posts/factorio-headless/cpu.py>`_ / `Mem <https://github.com/f110/site/blob/master/content/posts/factorio-headless/mem.py>`_
+なお上記のグラフを作成したスクリプトはそれぞれGitHubにPushしてあります。 [CPU](https://github.com/f110/site/blob/master/content/posts/factorio-headless/cpu.py) / [Mem](https://github.com/f110/site/blob/master/content/posts/factorio-headless/mem.py)
