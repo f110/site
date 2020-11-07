@@ -3,15 +3,11 @@ title: Bazelとモノレポ
 date: 2019-05-07
 tags: ["Bazel", "Go", "Monorepo"]
 isCJKLanguage: true
+section_numbering: true
+include_toc: true
 ---
 
 本エントリは [オリジナル](https://medium.com/mixi-developers/bazel%E3%81%A8%E3%83%A2%E3%83%8E%E3%83%AC%E3%83%9D-b901ffba61ce) の一部を再編集して掲載しています。（2020/03/31）
-
-<!--
-.. section-numbering::
-.. contents::
-    :local:
--->
 
 # モノレポのメリット
 

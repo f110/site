@@ -3,17 +3,13 @@ title: Homecluster basic
 date: 2020-04-02
 isCJKLanguage: true
 tags: ["Kubernetes", "homecluster"]
+include_toc: true
+section_numbering: true
 ---
 
 自宅の Kubernetes クラスタをどうやって構成するかという話。
 
 自宅クラスタ関連は [タグ](/tags/homecluster) で一覧できるようにしています。
-
-<!--
-.. section-numbering::
-.. contents::
-    :local:
--->
 
 # minikubeではなく物理クラスタという選択
 

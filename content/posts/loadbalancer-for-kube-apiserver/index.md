@@ -3,11 +3,8 @@ title: "Loadbalancer for kube-apiserver"
 date: 2020-08-18T00:33:16+09:00
 isCJKLanguage: true
 tags: ["Kubernetes", "Homecluster"]
+section_numbering: true
 ---
-
-<!--
-.. section-numbering::
--->
 
 元々masterサーバーを1台で構築したKubernetesクラスターをHA構成に変更しようとしたので、作業のメモ。
 この記事ではetcdを1台構成のままkube-apiserverを複数台構成にしてロードバランサーの下に入れることを目指す。
