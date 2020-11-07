@@ -18,6 +18,11 @@
   {{ with .Params.thumbnail }}
     <img src="{{ . }}" alt="thumbnail" class="p-article__thumbnail">
   {{ end }}
+  {{ if .Params.include_toc }}
+  <section id="table-of-contents">
+  {{ .TableOfContents }}
+  </section>
+  {{ end }}
   <section id="js-article" class="p-article__body">
     {{ .Content }}
   </section>
