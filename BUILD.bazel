@@ -1,15 +1,22 @@
+# gazelle:proto disable_global
+# gazelle:prefix github.com/f110/site
+
+load("@dev_f110_rules_extras//go:vendor.bzl", "go_vendor")
+
+go_vendor(name = "vendor")
+
 load("@build_stack_rules_hugo//hugo:rules.bzl", "hugo_site")
 
 hugo_site(
     name = "site",
     config = "config.toml",
-    theme = "//themes/pickles",
     content = [
         "//content/about:files",
     ],
-    static = glob(["static/**"]),
     layouts = glob(["layouts/**"]),
     quiet = False,
+    static = glob(["static/**"]),
+    theme = "//themes/pickles",
     verbose = True,
 )
 

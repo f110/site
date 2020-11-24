@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "site",
+    srcs = ["cmd.go"],
+    importpath = "github.com/f110/site/pkg/cmd/site",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/content",
+        "//vendor/github.com/kjk/notionapi",
+        "//vendor/github.com/spf13/cobra",
+        "//vendor/golang.org/x/xerrors",
+    ],
+)

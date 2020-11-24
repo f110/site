@@ -1,0 +1,10 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tomarkdown",
+    srcs = ["markdown.go"],
+    importmap = "github.com/f110/site/vendor/github.com/kjk/notionapi/tomarkdown",
+    importpath = "github.com/kjk/notionapi/tomarkdown",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/kjk/notionapi"],
+)

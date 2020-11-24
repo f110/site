@@ -9,6 +9,7 @@
         <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" | safeHTML }}">
           {{ .Date.Format "Jan 2, 2006" }}
         </time>
+        {{ with .Lastmod }}{{ . }}{{ end }}
       </div>
       {{ range .Params.tags }}
       <a href="{{ $baseurl }}/tags/{{ . | urlize }}" class="c-tag">{{ . }}</a>
@@ -18,7 +19,7 @@
   {{ with .Params.thumbnail }}
     <img src="{{ . }}" alt="thumbnail" class="p-article__thumbnail">
   {{ end }}
-  {{ if .Params.include_toc }}
+  {{ if .Params.toc }}
   <section id="table-of-contents">
   {{ .TableOfContents }}
   </section>
