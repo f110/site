@@ -53,6 +53,9 @@ menu:
       url: "/tags"
       weight: 3
 
+frontmatter:
+  lastmod: ["lastmod", "date"]
+
 related:
   # Only include matches with rank >= threshold. This is a normalized rank between 0 and 100.
   threshold: 100
