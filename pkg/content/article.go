@@ -109,8 +109,8 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 	articles := make([]*Article, 0)
 	for _, v := range collection.Result.BlockIDS {
 		r := collection.RecordMap.Blocks[v]
-		_, toc := r.Block.Properties[db.Properties["ToC"].ID]
-		_, sectionNumbering := r.Block.Properties[db.Properties["Section Numbering"].ID]
+		toc := checkboxPropertyValue(r.Block.Properties, db.Properties["ToC"].ID)
+		sectionNumbering := checkboxPropertyValue(r.Block.Properties, db.Properties["Section Numbering"].ID)
 		title := r.Block.Properties["title"].([]interface{})[0].([]interface{})[0].(string)
 		engTitle := r.Block.Properties[db.Properties["English Title"].ID].([]interface{})[0].([]interface{})[0].(string)
 		tag := r.Block.Properties[db.Properties["Tags"].ID].([]interface{})[0].([]interface{})[0].(string)
@@ -129,6 +129,31 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 	}
 
 	return articles, nil
+}
+
+func checkboxPropertyValue(properties map[string]interface{}, key string) bool {
+	value := properties[key]
+	if value == nil {
+		return false
+	}
+	v, ok := value.([]interface{})
+	if !ok {
+		return false
+	}
+	v, ok = v[0].([]interface{})
+	if !ok {
+		return false
+	}
+	checkbox, ok := v[0].(string)
+	if !ok {
+		return false
+	}
+
+	if checkbox == "No" {
+		return false
+	}
+
+	return true
 }
 
 func newDatabase(page *notionapi.Page) *Database {
