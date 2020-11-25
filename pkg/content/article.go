@@ -19,6 +19,7 @@ type Article struct {
 	Tags             []string
 	ToC              bool
 	SectionNumbering bool
+	Date             *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 }
@@ -51,9 +52,13 @@ type ArticleMetadata struct {
 }
 
 func (a *Article) Render(body []byte) ([]byte, error) {
+	date := a.Date
+	if date == nil {
+		date = &a.CreatedAt
+	}
 	meta := &ArticleMetadata{
 		Title:            a.Title,
-		Date:             a.CreatedAt,
+		Date:             *date,
 		IsCJKLanguage:    true,
 		ToC:              a.ToC,
 		SectionNumbering: a.SectionNumbering,
@@ -109,6 +114,7 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 	articles := make([]*Article, 0)
 	for _, v := range collection.Result.BlockIDS {
 		r := collection.RecordMap.Blocks[v]
+		date := datePropertyValue(r.Block.Properties, db.Properties["Date"].ID)
 		toc := checkboxPropertyValue(r.Block.Properties, db.Properties["ToC"].ID)
 		sectionNumbering := checkboxPropertyValue(r.Block.Properties, db.Properties["Section Numbering"].ID)
 		title := textPropertyValue(r.Block.Properties, "title")
@@ -122,12 +128,62 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 			Tags:             tags,
 			SectionNumbering: sectionNumbering,
 			ToC:              toc,
+			Date:             date,
 			CreatedAt:        r.Block.CreatedOn(),
 			UpdatedAt:        r.Block.LastEditedOn(),
 		})
 	}
 
 	return articles, nil
+}
+
+func datePropertyValue(properties map[string]interface{}, key string) *time.Time {
+	value := properties[key]
+	if value == nil {
+		return nil
+	}
+	v, ok := value.([]interface{})
+	if !ok {
+		return nil
+	}
+	v, ok = v[0].([]interface{})
+	if !ok {
+		return nil
+	}
+	v, ok = v[1].([]interface{})
+	if !ok {
+		return nil
+	}
+	v, ok = v[0].([]interface{})
+	if !ok {
+		return nil
+	}
+	d := v[1].(map[string]interface{})
+	if v, ok := d["type"]; !ok {
+		return nil
+	} else {
+		t, ok := v.(string)
+		if !ok {
+			return nil
+		}
+		if t != "date" {
+			return nil
+		}
+	}
+	sd, ok := d["start_date"]
+	if !ok {
+		return nil
+	}
+	startDateValue, ok := sd.(string)
+	if !ok {
+		return nil
+	}
+	startDate, err := time.Parse("2006-01-02", startDateValue)
+	if err != nil {
+		return nil
+	}
+
+	return &startDate
 }
 
 func checkboxPropertyValue(properties map[string]interface{}, key string) bool {
