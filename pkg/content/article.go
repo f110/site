@@ -111,10 +111,9 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 		r := collection.RecordMap.Blocks[v]
 		toc := checkboxPropertyValue(r.Block.Properties, db.Properties["ToC"].ID)
 		sectionNumbering := checkboxPropertyValue(r.Block.Properties, db.Properties["Section Numbering"].ID)
-		title := r.Block.Properties["title"].([]interface{})[0].([]interface{})[0].(string)
-		engTitle := r.Block.Properties[db.Properties["English Title"].ID].([]interface{})[0].([]interface{})[0].(string)
-		tag := r.Block.Properties[db.Properties["Tags"].ID].([]interface{})[0].([]interface{})[0].(string)
-		tags := strings.Split(tag, ",")
+		title := textPropertyValue(r.Block.Properties, "title")
+		engTitle := textPropertyValue(r.Block.Properties, db.Properties["English Title"].ID)
+		tags := multiSelectPropertyValue(r.Block.Properties, db.Properties["Tags"].ID)
 
 		articles = append(articles, &Article{
 			ID:               v,
@@ -154,6 +153,35 @@ func checkboxPropertyValue(properties map[string]interface{}, key string) bool {
 	}
 
 	return true
+}
+
+func textPropertyValue(properties map[string]interface{}, key string) string {
+	value := properties[key]
+	if value == nil {
+		return ""
+	}
+	v, ok := value.([]interface{})
+	if !ok {
+		return ""
+	}
+	v, ok = v[0].([]interface{})
+	if !ok {
+		return ""
+	}
+	text, ok := v[0].(string)
+	if !ok {
+		return ""
+	}
+
+	return text
+}
+
+func multiSelectPropertyValue(properties map[string]interface{}, key string) []string {
+	value := textPropertyValue(properties, key)
+	if value == "" {
+		return nil
+	}
+	return strings.Split(value, ",")
 }
 
 func newDatabase(page *notionapi.Page) *Database {
