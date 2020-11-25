@@ -1,7 +1,6 @@
 ---
 title: Notionを使い始めた
 date: 2020-11-25T10:35:00+09:00
-lastmod: 2020-11-26T01:00:00+09:00
 isCJKLanguage: true
 tags: [Productivity]
 ---
