@@ -1,6 +1,7 @@
 .PHONY: build
 build:
 	docker run --rm -v $(CURDIR):/site -w /site --user $(shell id -u) hugo:latest hugo -t pickles
+	find ./public -name BUILD.bazel -delete
 
 .PHONY: update-deps
 update-deps:
@@ -12,4 +13,3 @@ CONTENT_DIR = $(CURDIR)/content/posts
 .PHONY: update-contents
 update-contents:
 	bazel run //cmd/site -- update-content --id $(CONTENT_DATABASE_ID) --dir $(CONTENT_DIR)
-	find ./public -name BUILD.bazel -delete

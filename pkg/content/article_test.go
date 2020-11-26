@@ -15,7 +15,7 @@ func TestProperty(t *testing.T) {
 		err := json.Unmarshal([]byte(j), &data)
 		require.NoError(t, err)
 
-		_ := datePropertyValue(map[string]interface{}{"date": data}, "date")
+		date := datePropertyValue(map[string]interface{}{"date": data}, "date")
 		assert.Equal(t, "2020-11-25", date.Format("2006-01-02"))
 	})
 }

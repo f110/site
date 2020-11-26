@@ -43,6 +43,30 @@ func UpdateContent(client *notionapi.Client, pageId, dir string) error {
 			if err != nil {
 				return xerrors.Errorf(": %w", err)
 			}
+		} else {
+			if v.Freeze {
+				continue
+			}
+
+			lastmod, err := LastMod(filepath.Join(dir, dirName, "index.md"))
+			if err != nil {
+				return xerrors.Errorf(": %w", err)
+			}
+			if v.UpdatedAt.After(lastmod) && v.UpdatedAt.Sub(v.CreatedAt) > 24*time.Hour {
+				body, err := v.GetBody(client)
+				if err != nil {
+					return xerrors.Errorf(": %w", err)
+				}
+				c, err := v.Render(body)
+				if err != nil {
+					return xerrors.Errorf(": %w", err)
+				}
+				log.Printf("Update %s", filepath.Join(dir, dirName, "index.md"))
+				err = ioutil.WriteFile(filepath.Join(dir, dirName, "index.md"), c, 0644)
+				if err != nil {
+					return xerrors.Errorf(": %w", err)
+				}
+			}
 		}
 	}
 
@@ -58,6 +82,23 @@ func ReadDateFromFile(file string) (time.Time, error) {
 	err = yaml.NewDecoder(f).Decode(m)
 	if err != nil {
 		return time.Time{}, xerrors.Errorf(": %w", err)
+	}
+
+	return m.Date, nil
+}
+
+func LastMod(file string) (time.Time, error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return time.Time{}, xerrors.Errorf(": %w", err)
+	}
+	m := &ArticleMetadata{}
+	err = yaml.NewDecoder(f).Decode(m)
+	if err != nil {
+		return time.Time{}, xerrors.Errorf(": %w", err)
+	}
+	if !m.LastMod.IsZero() {
+		return m.LastMod, nil
 	}
 
 	return m.Date, nil

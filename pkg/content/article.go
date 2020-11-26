@@ -19,6 +19,7 @@ type Article struct {
 	Tags             []string
 	ToC              bool
 	SectionNumbering bool
+	Freeze           bool
 	Date             *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -45,6 +46,7 @@ func (a *Article) GetBody(client *notionapi.Client) ([]byte, error) {
 type ArticleMetadata struct {
 	Title            string    `yaml:"title"`
 	Date             time.Time `yaml:"date"`
+	LastMod          time.Time `yaml:"lastmod,omitempty"`
 	IsCJKLanguage    bool      `yaml:"isCJKLanguage"`
 	ToC              bool      `yaml:"toc,omitempty"`
 	SectionNumbering bool      `yaml:"section_numbering,omitempty"`
@@ -56,6 +58,7 @@ func (a *Article) Render(body []byte) ([]byte, error) {
 	if date == nil {
 		date = &a.CreatedAt
 	}
+
 	meta := &ArticleMetadata{
 		Title:            a.Title,
 		Date:             *date,
@@ -63,6 +66,9 @@ func (a *Article) Render(body []byte) ([]byte, error) {
 		ToC:              a.ToC,
 		SectionNumbering: a.SectionNumbering,
 		Tags:             a.Tags,
+	}
+	if !a.Freeze && a.UpdatedAt.Sub(a.CreatedAt) > 24*time.Hour {
+		meta.LastMod = a.UpdatedAt
 	}
 	metaBuf, err := yaml.Marshal(meta)
 	if err != nil {
@@ -117,6 +123,7 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 		date := datePropertyValue(r.Block.Properties, db.Properties["Date"].ID)
 		toc := checkboxPropertyValue(r.Block.Properties, db.Properties["ToC"].ID)
 		sectionNumbering := checkboxPropertyValue(r.Block.Properties, db.Properties["Section Numbering"].ID)
+		freeze := checkboxPropertyValue(r.Block.Properties, db.Properties["Freeze"].ID)
 		title := textPropertyValue(r.Block.Properties, "title")
 		engTitle := textPropertyValue(r.Block.Properties, db.Properties["English Title"].ID)
 		tags := multiSelectPropertyValue(r.Block.Properties, db.Properties["Tags"].ID)
@@ -128,6 +135,7 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 			Tags:             tags,
 			SectionNumbering: sectionNumbering,
 			ToC:              toc,
+			Freeze:           freeze,
 			Date:             date,
 			CreatedAt:        r.Block.CreatedOn(),
 			UpdatedAt:        r.Block.LastEditedOn(),
