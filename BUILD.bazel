@@ -9,7 +9,7 @@ load("@build_stack_rules_hugo//hugo:rules.bzl", "hugo_site")
 
 hugo_site(
     name = "site",
-    config = "config.toml",
+    config = "config.yaml",
     content = [
         "//content/about:files",
     ],
