@@ -20,6 +20,10 @@ func UpdateContent(client *notionapi.Client, pageId, dir string) error {
 	}
 
 	for _, v := range articles {
+		if v.Draft {
+			continue
+		}
+
 		dirName := strings.ReplaceAll(strings.ToLower(v.EnglishTitle), " ", "-")
 		if _, err := os.Stat(filepath.Join(dir, dirName)); os.IsNotExist(err) {
 			log.Printf("Mkdir %s", filepath.Join(dir, dirName))

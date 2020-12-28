@@ -20,6 +20,7 @@ type Article struct {
 	ToC              bool
 	SectionNumbering bool
 	Freeze           bool
+	Draft            bool
 	Date             *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -50,6 +51,7 @@ type ArticleMetadata struct {
 	IsCJKLanguage    bool      `yaml:"isCJKLanguage"`
 	ToC              bool      `yaml:"toc,omitempty"`
 	SectionNumbering bool      `yaml:"section_numbering,omitempty"`
+	Draft            bool      `yaml:"draft,omitempty"`
 	Tags             []string  `yaml:"tags,flow"`
 }
 
@@ -124,6 +126,7 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 		toc := checkboxPropertyValue(r.Block.Properties, db.Properties["ToC"].ID)
 		sectionNumbering := checkboxPropertyValue(r.Block.Properties, db.Properties["Section Numbering"].ID)
 		freeze := checkboxPropertyValue(r.Block.Properties, db.Properties["Freeze"].ID)
+		draft := checkboxPropertyValue(r.Block.Properties, db.Properties["Draft"].ID)
 		title := textPropertyValue(r.Block.Properties, "title")
 		engTitle := textPropertyValue(r.Block.Properties, db.Properties["English Title"].ID)
 		tags := multiSelectPropertyValue(r.Block.Properties, db.Properties["Tags"].ID)
@@ -137,6 +140,7 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 			ToC:              toc,
 			Freeze:           freeze,
 			Date:             date,
+			Draft:            draft,
 			CreatedAt:        r.Block.CreatedOn(),
 			UpdatedAt:        r.Block.LastEditedOn(),
 		})
