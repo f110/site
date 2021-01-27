@@ -2,7 +2,7 @@
 title: UniFi Dream Machine Proを買った
 date: 2021-01-27T13:05:00+09:00
 isCJKLanguage: true
-tags: [Home Network]
+tags: [Home Network, UniFi]
 ---
 
 UniFi Dream Machine Pro が[日本のストアでも取り扱い](https://jp.store.ui.com/collections/unifi-network-recommended/products/udm-pro)が開始されたので買った。
