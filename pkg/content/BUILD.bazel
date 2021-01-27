@@ -18,7 +18,10 @@ go_library(
 
 go_test(
     name = "content_test",
-    srcs = ["content_test.go"],
+    srcs = [
+        "article_test.go",
+        "content_test.go",
+    ],
     data = glob(["testdata/**"]),
     embed = [":content"],
     deps = [

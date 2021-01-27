@@ -47,6 +47,13 @@ func UpdateContent(client *notionapi.Client, pageId, dir string) error {
 			if err != nil {
 				return xerrors.Errorf(": %w", err)
 			}
+			for _, file := range v.Files {
+				log.Printf("Create %s", filepath.Join(dir, dirName, file.Filename))
+				err = ioutil.WriteFile(filepath.Join(dir, dirName, file.Filename), file.Data, 0644)
+				if err != nil {
+					return xerrors.Errorf(": %w", err)
+				}
+			}
 		} else {
 			if v.Freeze {
 				continue
@@ -69,6 +76,13 @@ func UpdateContent(client *notionapi.Client, pageId, dir string) error {
 				err = ioutil.WriteFile(filepath.Join(dir, dirName, "index.md"), c, 0644)
 				if err != nil {
 					return xerrors.Errorf(": %w", err)
+				}
+				for _, file := range v.Files {
+					log.Printf("Create %s", filepath.Join(dir, dirName, file.Filename))
+					err = ioutil.WriteFile(filepath.Join(dir, dirName, file.Filename), file.Data, 0644)
+					if err != nil {
+						return xerrors.Errorf(": %w", err)
+					}
 				}
 			}
 		}

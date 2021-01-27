@@ -4,7 +4,7 @@ github.com/davecgh/go-spew/spew
 github.com/google/uuid
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/kjk/notionapi v0.0.0-20201107214737-0d0221669d7c
+# github.com/kjk/notionapi v0.0.0-20201230072046-b69038831038
 ## explicit
 github.com/kjk/notionapi
 github.com/kjk/notionapi/tomarkdown

@@ -3,6 +3,8 @@ package content
 import (
 	"bufio"
 	"bytes"
+	"net/url"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -11,6 +13,11 @@ import (
 	"golang.org/x/xerrors"
 	"gopkg.in/yaml.v2"
 )
+
+type ArticleFile struct {
+	Filename string
+	Data     []byte
+}
 
 type Article struct {
 	ID               string
@@ -24,12 +31,33 @@ type Article struct {
 	Date             *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+
+	Files []ArticleFile
 }
 
 func (a *Article) GetBody(client *notionapi.Client) ([]byte, error) {
 	p, err := client.DownloadPage(a.ID)
 	if err != nil {
 		return nil, xerrors.Errorf(": %w", err)
+	}
+	for _, v := range p.Root().Content {
+		if v.Type == notionapi.BlockImage {
+			u, err := url.Parse(v.Source)
+			if err != nil {
+				return nil, xerrors.Errorf(": %w", err)
+			}
+			filename := filepath.Base(u.Path)
+			basename := strings.TrimSuffix(filename, filepath.Ext(filename))
+			newFilename := basename + "-" + v.FileIDs[0] + filepath.Ext(filename)
+			buf, err := fetchFile(client, v)
+			if err != nil {
+				return nil, xerrors.Errorf(": %w", err)
+			}
+			a.Files = append(a.Files, ArticleFile{
+				Filename: newFilename,
+				Data:     buf,
+			})
+		}
 	}
 	buf := tomarkdown.ToMarkdown(p)
 	s := bufio.NewScanner(bytes.NewReader(buf))
@@ -105,14 +133,11 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 	}
 	db := newDatabase(page)
 
+	q := page.CollectionViewByID(page.CollectionViewRecords[0].ID).Query2
 	collection, err := client.QueryCollection(
 		page.CollectionRecords[0].ID,
 		page.CollectionViewRecords[0].ID,
-		&notionapi.Query{
-			Sort: []*notionapi.QuerySort{
-				{Property: db.Properties["Created"].ID, Direction: "descending"},
-			},
-		},
+		q,
 		nil,
 	)
 	if err != nil {
@@ -262,4 +287,33 @@ func newDatabase(page *notionapi.Page) *Database {
 	}
 
 	return &Database{Properties: prop, IdToProperty: idToProp}
+}
+
+func fetchFile(client *notionapi.Client, block *notionapi.Block) ([]byte, error) {
+	var u *url.URL
+	switch block.Type {
+	case notionapi.BlockImage:
+		values := &url.Values{}
+		values.Set("table", "block")
+		values.Set("id", block.ID)
+		values.Set("spaceId", block.RawJSON["space_id"].(string))
+		values.Set("userId", block.CreatedByID)
+		values.Set("cache", "v2")
+		imageURL, err := url.Parse("https://www.notion.so/image/" + url.PathEscape(block.Source))
+		if err != nil {
+			return nil, xerrors.Errorf(": %w", err)
+		}
+		imageURL.RawQuery = values.Encode()
+		u = imageURL
+	}
+	if u == nil {
+		return nil, nil
+	}
+
+	res, err := client.DownloadFile(u.String(), block.ID)
+	if err != nil {
+		return nil, xerrors.Errorf(": %w", err)
+	}
+
+	return res.Data, nil
 }
