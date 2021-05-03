@@ -1,7 +1,10 @@
 .PHONY: build
 build:
-	docker run --rm -v $(CURDIR):/site -w /site --user $(shell id -u) hugo:latest hugo -t pickles
-	find ./public -name BUILD.bazel -delete
+	bazel clean
+	bazel build //:site_tar
+	rm -rf public/*
+	tar xf bazel-bin/site_tar.tar -C public --strip-components=2
+	chmod -R 755 public/*
 
 .PHONY: update-deps
 update-deps:

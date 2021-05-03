@@ -12,6 +12,7 @@ hugo_site(
     config = "config.yaml",
     content = [
         "//content/about:files",
+        "//content/posts:files",
     ],
     layouts = glob(["layouts/**"]),
     quiet = False,
@@ -24,5 +25,8 @@ load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
 pkg_tar(
     name = "site_tar",
+    files = {
+        ":CNAME": "site/CNAME",
+    },
     srcs = [":site"],
 )
