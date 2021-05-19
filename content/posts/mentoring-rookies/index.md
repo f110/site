@@ -1,7 +1,6 @@
 ---
 title: メンターとメンティー
 date: 2021-05-20T00:00:00+09:00
-lastmod: 2021-05-20T01:44:00+09:00
 isCJKLanguage: true
 toc: true
 section_numbering: true
