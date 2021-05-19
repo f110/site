@@ -219,6 +219,7 @@ func datePropertyValue(properties map[string]interface{}, key string) *time.Time
 	if err != nil {
 		return nil
 	}
+	startDate = startDate.Local()
 
 	return &startDate
 }
