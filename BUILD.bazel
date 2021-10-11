@@ -25,8 +25,8 @@ load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
 pkg_tar(
     name = "site_tar",
+    srcs = [":site"],
     files = {
         ":CNAME": "site/CNAME",
     },
-    srcs = [":site"],
 )

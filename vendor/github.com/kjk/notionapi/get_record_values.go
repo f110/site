@@ -99,20 +99,14 @@ func parseRecord(table string, r *Record) error {
 	if obj == nil {
 		return fmt.Errorf("unsupported table '%s'", r.Table)
 	}
-	if false {
-		if table == TableCollectionView {
-			s := string(r.Value)
-			fmt.Printf("collection_view json:\n%s\n\n", s)
-		}
-	}
-	if err := json.Unmarshal(r.Value, pRawJSON); err != nil {
+	if err := jsonit.Unmarshal(r.Value, pRawJSON); err != nil {
 		return err
 	}
 	id := (*pRawJSON)["id"]
 	if id != nil {
 		r.ID = id.(string)
 	}
-	if err := json.Unmarshal(r.Value, &obj); err != nil {
+	if err := jsonit.Unmarshal(r.Value, &obj); err != nil {
 		return err
 	}
 	return nil
@@ -139,10 +133,10 @@ func (c *Client) GetRecordValues(records []RecordRequest) (*GetRecordValuesRespo
 		Requests: records,
 	}
 
-	apiURL := "/api/v3/getRecordValues"
 	var rsp GetRecordValuesResponse
 	var err error
-	if rsp.RawJSON, err = doNotionAPI(c, apiURL, req, &rsp); err != nil {
+	apiURL := "/api/v3/getRecordValues"
+	if rsp.RawJSON, err = c.doNotionAPI(apiURL, req, &rsp); err != nil {
 		return nil, err
 	}
 

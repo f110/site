@@ -133,20 +133,23 @@ func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
 	}
 	db := newDatabase(page)
 
-	q := page.CollectionViewByID(page.CollectionViewRecords[0].ID).Query2
-	collection, err := client.QueryCollection(
-		page.CollectionRecords[0].ID,
-		page.CollectionViewRecords[0].ID,
-		q,
-		nil,
-	)
+	q := page.CollectionViewByID(notionapi.NewNotionID(page.CollectionViewRecords[0].ID)).Query
+	req := notionapi.QueryCollectionRequest{}
+	req.Collection.ID = page.CollectionRecords[0].ID
+	//req.Collection.SpaceID = page.CollectionRecords[0].Space.ID
+	req.CollectionView.ID = page.CollectionViewRecords[0].ID
+	//req.CollectionView.SpaceID = page.CollectionViewRecords[0].Space.ID
+	res, err := client.QueryCollection(req, q)
+	if err != nil {
+		return nil, xerrors.Errorf(": %w", err)
+	}
 	if err != nil {
 		return nil, xerrors.Errorf(": %w", err)
 	}
 
 	articles := make([]*Article, 0)
-	for _, v := range collection.Result.BlockIDS {
-		r := collection.RecordMap.Blocks[v]
+	for _, v := range res.Result.ReducerResults.CollectionGroupResults.BlockIds {
+		r := res.RecordMap.Blocks[v]
 		date := datePropertyValue(r.Block.Properties, db.Properties["Date"].ID)
 		toc := checkboxPropertyValue(r.Block.Properties, db.Properties["ToC"].ID)
 		sectionNumbering := checkboxPropertyValue(r.Block.Properties, db.Properties["Section Numbering"].ID)
@@ -279,7 +282,7 @@ func multiSelectPropertyValue(properties map[string]interface{}, key string) []s
 }
 
 func newDatabase(page *notionapi.Page) *Database {
-	col := page.CollectionByID(page.CollectionRecords[0].ID)
+	col := page.CollectionByID(notionapi.NewNotionID(page.CollectionRecords[0].ID))
 	prop := make(map[string]*Property)
 	idToProp := make(map[string]*Property)
 	for id, v := range col.Schema {
@@ -311,7 +314,7 @@ func fetchFile(client *notionapi.Client, block *notionapi.Block) ([]byte, error)
 		return nil, nil
 	}
 
-	res, err := client.DownloadFile(u.String(), block.ID)
+	res, err := client.DownloadFile(u.String(), block)
 	if err != nil {
 		return nil, xerrors.Errorf(": %w", err)
 	}

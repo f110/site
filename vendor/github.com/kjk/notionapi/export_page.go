@@ -61,11 +61,12 @@ type getTasksRequest struct {
 	TaskIDS []string `json:"taskIds"`
 }
 
-// ExportPages exports a page as html or markdown, potentially recursively
-func (c *Client) ExportPages(id string, exportType string, recursive bool) ([]byte, error) {
+// RequestPageExportURL executes a raw API call to enqueue an export of pages
+// and returns the URL to the exported data once the task is complete
+func (c *Client) RequestPageExportURL(id string, exportType string, recursive bool) (string, error) {
 	id = ToDashID(id)
 	if !IsValidDashID(id) {
-		return nil, fmt.Errorf("'%s' is not a valid notion id", id)
+		return "", fmt.Errorf("'%s' is not a valid notion id", id)
 	}
 
 	req := &exportPageTaskRequest{
@@ -82,12 +83,12 @@ func (c *Client) ExportPages(id string, exportType string, recursive bool) ([]by
 		},
 	}
 
-	apiURL := "/api/v3/enqueueTask"
 	var rsp enqueueTaskResponse
 	var err error
-	rsp.RawJSON, err = doNotionAPI(c, apiURL, req, &rsp)
+	apiURL := "/api/v3/enqueueTask"
+	rsp.RawJSON, err = c.doNotionAPI(apiURL, req, &rsp)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	var exportURL string
@@ -100,9 +101,9 @@ func (c *Client) ExportPages(id string, exportType string, recursive bool) ([]by
 		var err error
 		var rsp getTasksExportPageResponse
 		apiURL = "/api/v3/getTasks"
-		_, err = doNotionAPI(c, apiURL, req, &rsp)
+		_, err = c.doNotionAPI(apiURL, req, &rsp)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		status := rsp.Results[0].Status
 		if status != nil && status.Type == statusComplete {
@@ -111,7 +112,18 @@ func (c *Client) ExportPages(id string, exportType string, recursive bool) ([]by
 		}
 		time.Sleep(750 * time.Millisecond)
 	}
-	dlRsp, err := c.DownloadFile(exportURL, id)
+
+	return exportURL, nil
+}
+
+// ExportPages exports a page as html or markdown, potentially recursively
+func (c *Client) ExportPages(id string, exportType string, recursive bool) ([]byte, error) {
+	exportURL, err := c.RequestPageExportURL(id, exportType, recursive)
+	if err != nil {
+		return nil, err
+	}
+
+	dlRsp, err := c.DownloadFile(exportURL, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "siser",
+    srcs = [
+        "reader.go",
+        "record.go",
+        "util.go",
+        "writer.go",
+    ],
+    importmap = "github.com/f110/site/vendor/github.com/kjk/siser",
+    importpath = "github.com/kjk/siser",
+    visibility = ["//visibility:public"],
+)

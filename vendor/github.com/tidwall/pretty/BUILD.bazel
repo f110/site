@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "pretty",
+    srcs = ["pretty.go"],
+    importmap = "github.com/f110/site/vendor/github.com/tidwall/pretty",
+    importpath = "github.com/tidwall/pretty",
+    visibility = ["//visibility:public"],
+)

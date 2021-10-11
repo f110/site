@@ -31,12 +31,11 @@ type GetUploadFileUrlResponse struct {
 }
 
 func (r *GetUploadFileUrlResponse) Parse() {
-	r.FileID = strings.Split(r.URL[len(s3URLPrefix):], "/")[0]
+	r.FileID = strings.Split(r.URL[len(s3FileURLPrefix):], "/")[0]
 }
 
 // getUploadFileURL executes a raw API call: POST /api/v3/getUploadFileUrl
 func (c *Client) getUploadFileURL(name, contentType string) (*GetUploadFileUrlResponse, error) {
-	const apiURL = "/api/v3/getUploadFileUrl"
 
 	req := &getUploadFileUrlRequest{
 		Bucket:      "secure",
@@ -46,7 +45,8 @@ func (c *Client) getUploadFileURL(name, contentType string) (*GetUploadFileUrlRe
 
 	var rsp GetUploadFileUrlResponse
 	var err error
-	rsp.RawJSON, err = doNotionAPI(c, apiURL, req, &rsp)
+	const apiURL = "/api/v3/getUploadFileUrl"
+	rsp.RawJSON, err = c.doNotionAPI(apiURL, req, &rsp)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (c *Client) SetNewRecordOp(userID string, parent *Block, recordType string)
 // UploadFile Uploads a file to notion's asset hosting(aws s3)
 func (c *Client) UploadFile(file *os.File) (fileID, fileURL string, err error) {
 	contentType, err := GetFileContentType(file)
-	log(c, "contentType: %s", contentType)
+	c.logf("contentType: %s", contentType)
 
 	if err != nil {
 		err = fmt.Errorf("couldn't figure out the content-type of the file: %s", err)

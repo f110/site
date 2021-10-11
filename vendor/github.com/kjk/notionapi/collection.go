@@ -1,7 +1,6 @@
 package notionapi
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -88,6 +87,8 @@ type Collection struct {
 	ParentTable string                   `json:"parent_table"`
 	Alive       bool                     `json:"alive"`
 	CopiedFrom  string                   `json:"copied_from"`
+	Cover       string                   `json:"cover"`
+	Description []interface{}            `json:"description"`
 
 	// TODO: are those ever present?
 	Type          string   `json:"type"`
@@ -118,6 +119,33 @@ type TableProperty struct {
 	Property string `json:"property"`
 }
 
+type QuerySort struct {
+	ID        string `json:"id"`
+	Type      string `json:"type"`
+	Property  string `json:"property"`
+	Direction string `json:"direction"`
+}
+
+type QueryAggregate struct {
+	ID              string `json:"id"`
+	Type            string `json:"type"`
+	Property        string `json:"property"`
+	ViewType        string `json:"view_type"`
+	AggregationType string `json:"aggregation_type"`
+}
+
+type QueryAggregation struct {
+	Property   string `json:"property"`
+	Aggregator string `json:"aggregator"`
+}
+
+type Query struct {
+	Sort         []QuerySort            `json:"sort"`
+	Aggregate    []QueryAggregate       `json:"aggregate"`
+	Aggregations []QueryAggregation     `json:"aggregations"`
+	Filter       map[string]interface{} `json:"filter"`
+}
+
 // FormatTable describes format for BlockTable
 type FormatTable struct {
 	PageSort        []string         `json:"page_sort"`
@@ -127,19 +155,17 @@ type FormatTable struct {
 
 // CollectionView represents a collection view
 type CollectionView struct {
-	ID          string          `json:"id"`
-	Version     int64           `json:"version"`
-	Type        string          `json:"type"` // "table"
-	Format      *FormatTable    `json:"format"`
-	Name        string          `json:"name"`
-	ParentID    string          `json:"parent_id"`
-	ParentTable string          `json:"parent_table"`
-	Query       json.RawMessage `json:"query"`
-	Query2      json.RawMessage `json:"query2"`
-	Alive       bool            `json:"alive"`
-	PageSort    []string        `json:"page_sort"`
-	ShardID     int64           `json:"shard_id"`
-	SpaceID     string          `json:"space_id"`
+	ID          string       `json:"id"`
+	Version     int64        `json:"version"`
+	Type        string       `json:"type"` // "table"
+	Format      *FormatTable `json:"format"`
+	Name        string       `json:"name"`
+	ParentID    string       `json:"parent_id"`
+	ParentTable string       `json:"parent_table"`
+	Query       *Query       `json:"query2"`
+	Alive       bool         `json:"alive"`
+	PageSort    []string     `json:"page_sort"`
+	SpaceID     string       `json:"space_id"`
 
 	// set by us
 	RawJSON map[string]interface{} `json:"-"`
@@ -214,12 +240,12 @@ func (c *Client) buildTableView(tv *TableView, res *QueryCollectionResponse) err
 	collection := tv.Collection
 
 	if cv.Format == nil {
-		log(c, "buildTableView: page: '%s', missing CollectionView.Format in collection view with id '%s'\n", ToNoDashID(tv.Page.ID), cv.ID)
+		c.logf("buildTableView: page: '%s', missing CollectionView.Format in collection view with id '%s'\n", ToNoDashID(tv.Page.ID), cv.ID)
 		return nil
 	}
 
 	if collection == nil {
-		log(c, "buildTableView: page: '%s', colleciton is nil, collection view id: '%s'\n", ToNoDashID(tv.Page.ID), cv.ID)
+		c.logf("buildTableView: page: '%s', colleciton is nil, collection view id: '%s'\n", ToNoDashID(tv.Page.ID), cv.ID)
 		// TODO: maybe should return nil if this is missing in data returned
 		// by Notion. If it's a bug in our interpretation, we should fix
 		// that instead
@@ -227,7 +253,7 @@ func (c *Client) buildTableView(tv *TableView, res *QueryCollectionResponse) err
 	}
 
 	if collection.Schema == nil {
-		log(c, "buildTableView: page: '%s', missing collection.Schema, collection view id: '%s', collection id: '%s'\n", ToNoDashID(tv.Page.ID), cv.ID, collection.ID)
+		c.logf("buildTableView: page: '%s', missing collection.Schema, collection view id: '%s', collection id: '%s'\n", ToNoDashID(tv.Page.ID), cv.ID, collection.ID)
 		// TODO: maybe should return nil if this is missing in data returned
 		// by Notion. If it's a bug in our interpretation, we should fix
 		// that instead
@@ -254,7 +280,10 @@ func (c *Client) buildTableView(tv *TableView, res *QueryCollectionResponse) err
 
 	// blockIDs are IDs of page blocks
 	// each page represents one table row
-	blockIds := res.Result.BlockIDS
+	var blockIds []string
+	if res.Result.ReducerResults != nil && res.Result.ReducerResults.CollectionGroupResults != nil {
+		blockIds = res.Result.ReducerResults.CollectionGroupResults.BlockIds
+	}
 	for _, id := range blockIds {
 		rec, ok := res.RecordMap.Blocks[id]
 		if !ok {
@@ -262,11 +291,13 @@ func (c *Client) buildTableView(tv *TableView, res *QueryCollectionResponse) err
 			return fmt.Errorf("didn't find block with id '%s' for collection view with id '%s'", id, cvID)
 		}
 		b := rec.Block
-		tr := &TableRow{
-			TableView: tv,
-			Page:      b,
+		if b != nil {
+			tr := &TableRow{
+				TableView: tv,
+				Page:      b,
+			}
+			tv.Rows = append(tv.Rows, tr)
 		}
-		tv.Rows = append(tv.Rows, tr)
 	}
 
 	// pre-calculate cell content

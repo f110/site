@@ -1,8 +1,6 @@
 package notionapi
 
-import (
-	"encoding/json"
-)
+import "encoding/json"
 
 type LoadUserResponse struct {
 	ID    string `json:"id"`
@@ -21,11 +19,11 @@ type LoadUserResponse struct {
 func (c *Client) LoadUserContent() (*LoadUserResponse, error) {
 	req := struct{}{}
 
-	apiURL := "/api/v3/loadUserContent"
 	var rsp struct {
 		RecordMap map[string]map[string]*LoadUserResponse `json:"recordMap"`
 	}
-	rawJSON, err := doNotionAPI(c, apiURL, req, &rsp)
+	apiURL := "/api/v3/loadUserContent"
+	rawJSON, err := c.doNotionAPI(apiURL, req, &rsp)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +50,7 @@ func (c *Client) LoadUserContent() (*LoadUserResponse, error) {
 			if obj == nil {
 				continue
 			}
-			if err := json.Unmarshal(value.Value, &obj); err != nil {
+			if err := jsonit.Unmarshal(value.Value, &obj); err != nil {
 				return nil, err
 			}
 		}

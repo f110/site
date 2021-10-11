@@ -25,6 +25,7 @@ func UpdateContent(client *notionapi.Client, pageId, dir string) error {
 		}
 
 		dirName := strings.ReplaceAll(strings.ToLower(v.EnglishTitle), " ", "-")
+		dirName = strings.ReplaceAll(dirName, "'", "")
 		if _, err := os.Stat(filepath.Join(dir, dirName)); os.IsNotExist(err) {
 			log.Printf("Mkdir %s", filepath.Join(dir, dirName))
 			if err := os.MkdirAll(filepath.Join(dir, dirName), 0755); err != nil {

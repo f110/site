@@ -78,7 +78,12 @@ const (
 	// BlockTweet is embedded gist block
 	BlockTweet = "tweet"
 	// BlockVideo is youtube video embed
-	BlockVideo = "video"
+	BlockVideo                 = "video"
+	BlockCopyIndicator         = "copy_indicator"
+	BlockLinkToCollection      = "link_to_collection"
+	BlockMiro                  = "miro"
+	BlockAlias                 = "alias"
+	BlockTransclusionReference = "transclusion_reference"
 )
 
 // FormatBookmark describes format for BlockBookmark
@@ -158,6 +163,17 @@ type FormatEmbed struct {
 	DisplaySource      string  `json:"display_source"`
 }
 
+type AliasPointer struct {
+	ID      string `json:"id"`
+	SpaceID string `json:"spaceId"`
+	Table   string `json:"table"`
+}
+
+// FormatAlias describes format for BlockAlias
+type FormatAlias struct {
+	Alias *AliasPointer `json:"alias_pointer"`
+}
+
 type FormatFigma struct {
 	BlockFullWidth     bool    `json:"block_full_width"`
 	BlockHeight        float64 `json:"block_height"`
@@ -182,9 +198,6 @@ type FormatImage struct {
 	BlockPreserveScale bool    `json:"block_preserve_scale"`
 	BlockWidth         float64 `json:"block_width"`
 	DisplaySource      string  `json:"display_source,omitempty"`
-
-	// calculated by us
-	ImageURL string `json:"image_url,omitempty"`
 }
 
 type FormatMaps struct {
@@ -199,6 +212,12 @@ type FormatMaps struct {
 // FormatNumberedList describes format for BlockNumberedList
 type FormatNumberedList struct {
 	BlockColor string `json:"block_color"`
+}
+
+type CopiedFromPointer struct {
+	ID      string `json:"id"`
+	Table   string `json:"table"`
+	SpaceID string `json:"spaceId"`
 }
 
 // FormatPage describes format for BlockPage
@@ -218,6 +237,7 @@ type FormatPage struct {
 	BlockLocked   bool   `json:"block_locked"`
 	BlockLockedBy string `json:"block_locked_by"`
 
+	CopiedFromPointer *CopiedFromPointer `json:"copied_from_pointer"`
 	// calculated by us
 	PageCoverURL string `json:"page_cover_url,omitempty"`
 }
@@ -271,6 +291,8 @@ type Permission struct {
 	// if Type == "user_permission"
 	UserID *string `json:"user_id,omitempty"`
 
+	AddedTimestamp int64 `json:"added_timestamp"`
+
 	// if Type == "public_permission"
 	AllowDuplicate            bool `json:"allow_duplicate"`
 	AllowSearchEngineIndexing bool `json:"allow_search_engine_indexing"`
@@ -292,8 +314,11 @@ type Block struct {
 	CreatedBy   string `json:"created_by"`
 	CreatedTime int64  `json:"created_time"`
 
-	CreatedByTable    string `json:"created_by_table"`     // e.g. "notion_user"
-	CreatedByID       string `json:"created_by_id"`        // e.g. "bb760e2d-d679-4b64-b2a9-03005b21870a",
+	CreatedByTable string `json:"created_by_table"` // e.g. "notion_user"
+	CreatedByID    string `json:"created_by_id"`    // e.g. "bb760e2d-d679-4b64-b2a9-03005b21870a",
+	// ID of the user who last edited this block
+	LastEditedBy      string `json:"last_edited_by"`
+	LastEditedTime    int64  `json:"last_edited_time"`
 	LastEditedByTable string `json:"last_edited_by_table"` // e.g. "notion_user"
 	LastEditedByID    string `json:"last_edited_by_id"`    // e.g. "bb760e2d-d679-4b64-b2a9-03005b21870a"
 
@@ -306,15 +331,13 @@ type Block struct {
 	// TODO: don't know what this means
 	IgnoreBlockCount bool `json:"ignore_block_count,omitempty"`
 
-	// ID of the user who last edited this block
-	LastEditedBy   string `json:"last_edited_by"`
-	LastEditedTime int64  `json:"last_edited_time"`
 	// ID of parent Block
 	ParentID    string `json:"parent_id"`
 	ParentTable string `json:"parent_table"`
 	// not always available
 	Permissions *[]Permission          `json:"permissions,omitempty"`
 	Properties  map[string]interface{} `json:"properties,omitempty"`
+	SpaceID     string                 `json:"space_id"`
 	// type of the block e.g. TypeText, TypePage etc.
 	Type string `json:"type"`
 	// blocks are versioned
@@ -342,17 +365,14 @@ type Block struct {
 
 	// for BlockBookmark it's the url of the page
 	// for BlockGist it's the url for the gist
-	// fot BlockImage it's url of the image, but use ImageURL instead
-	// because Source is sometimes not accessible
+	// for BlockImage it's url of the image. Sometimes you need to use DownloadFile()
+	//   to get this image
 	// for BlockFile it's url of the file
 	// for BlockEmbed it's url of the embed
 	Source string `json:"-"`
 
 	// for BlockFile
 	FileSize string `json:"-"`
-
-	// for BlockImage it's an URL built from Source that is always accessible
-	ImageURL string `json:"-"`
 
 	// for BlockCode
 	Code         string `json:"-"`
@@ -367,7 +387,23 @@ type Block struct {
 	// RawJSON represents Block as
 	RawJSON map[string]interface{} `json:"-"`
 
-	isResolved bool
+	notionID       *NotionID
+	parentNotionID *NotionID
+	isResolved     bool
+}
+
+func (b *Block) GetNotionID() *NotionID {
+	if b.notionID == nil {
+		b.notionID = NewNotionID(b.ID)
+	}
+	return b.notionID
+}
+
+func (b *Block) GetParentNotionID() *NotionID {
+	if b.parentNotionID == nil {
+		b.parentNotionID = NewNotionID(b.ParentID)
+	}
+	return b.parentNotionID
 }
 
 func (b *Block) Prop(key string) (interface{}, bool) {
@@ -541,10 +577,6 @@ func parseProperties(block *Block) error {
 		getProp(block, "source", &block.Source)
 	}
 
-	if block.Source != "" && block.IsImage() {
-		block.ImageURL = maybeProxyImageURL(block.Source)
-	}
-
 	// for BlockCode
 	getProp(block, "language", &block.CodeLanguage)
 
@@ -603,8 +635,6 @@ func (b *Block) FormatPage() *FormatPage {
 }
 
 func (b *Block) FormatImage() *FormatImage {
-	// TODO: no longer does
-	// format.ImageURL = maybeProxyImageURL(format.DisplaySource)
 	var format FormatImage
 	if ok := b.unmarshalFormat(BlockImage, &format); !ok {
 		return nil
@@ -631,6 +661,14 @@ func (b *Block) FormatText() *FormatText {
 func (b *Block) FormatVideo() *FormatVideo {
 	var format FormatVideo
 	if ok := b.unmarshalFormat(BlockVideo, &format); !ok {
+		return nil
+	}
+	return &format
+}
+
+func (b *Block) FormatAlias() *FormatAlias {
+	var format FormatAlias
+	if ok := b.unmarshalFormat(BlockAlias, &format); !ok {
 		return nil
 	}
 	return &format
@@ -676,20 +714,28 @@ func (b *Block) FormatBulletedList() *FormatBulletedList {
 	return &format
 }
 
-func (b *Block) BlockByID(id string) *Block {
-	return b.Page.BlockByID(id)
+func (b *Block) FormatCallout() *FormatCallout {
+	var format FormatCallout
+	if ok := b.unmarshalFormat(BlockCallout, &format); !ok {
+		return nil
+	}
+	return &format
 }
 
-func (b *Block) UserByID(id string) *User {
-	return b.Page.UserByID(id)
+func (b *Block) BlockByID(nid *NotionID) *Block {
+	return b.Page.BlockByID(nid)
 }
 
-func (b *Block) CollectionByID(id string) *Collection {
-	return b.Page.CollectionByID(id)
+func (b *Block) UserByID(nid *NotionID) *User {
+	return b.Page.UserByID(nid)
 }
 
-func (b *Block) CollectionViewByID(id string) *CollectionView {
-	return b.Page.CollectionViewByID(id)
+func (b *Block) CollectionByID(nid *NotionID) *Collection {
+	return b.Page.CollectionByID(nid)
+}
+
+func (b *Block) CollectionViewByID(nid *NotionID) *CollectionView {
+	return b.Page.CollectionViewByID(nid)
 }
 
 func getBlockIDsSorted(idToBlock map[string]*Block) []string {

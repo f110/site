@@ -1,95 +1,87 @@
 package notionapi
 
-import (
-	"encoding/json"
-	"fmt"
+const (
+	// key in LoaderReducer.Reducers map
+	ReducerCollectionGroupResultsName = "collection_group_results"
 )
 
-type loader struct {
-	Type  string `json:"type"`  // e.g. "table"
-	Limit int    `json:"limit"` // Notion uses 70 by default
-	// from User.TimeZone
-	UserTimeZone string `json:"userTimeZone"`
-	// from User.Locale
-	//UserLocale       string `json:"userLocale"`
-	LoadContentCover bool `json:"loadContentCover"`
-	// TODO: searchQuery
+type ReducerCollectionGroupResults struct {
+	Type  string `json:"type"`
+	Limit int    `json:"limit"`
 }
 
 // /api/v3/queryCollection request
-type queryCollectionRequest struct {
-	CollectionID     string          `json:"collectionId"`
-	CollectionViewID string          `json:"collectionViewId"`
-	Query2           json.RawMessage `json:"query"`
-	Loader           *loader         `json:"loader"`
+type QueryCollectionRequest struct {
+	Collection struct {
+		ID      string `json:"id"`
+		SpaceID string `json:"spaceId"`
+	} `json:"collection"`
+	CollectionView struct {
+		ID      string `json:"id"`
+		SpaceID string `json:"spaceId"`
+	} `json:"collectionView"`
+	Loader interface{} `json:"loader"` // e.g. LoaderReducer
 }
 
-// AggregationResult represents result of aggregation
-type AggregationResult struct {
-	ID string `json:"id"`
-	// TODO: maybe json.Number? Shouldn't float64 cover both?
-	Value float64 `json:"value"`
+type CollectionGroupResults struct {
+	Type     string   `json:"type"`
+	BlockIds []string `json:"blockIds"`
+	Total    int      `json:"total"`
 }
-
-// QueryCollectionResult is part of response for /api/v3/queryCollection
-type QueryCollectionResult struct {
-	Type               string               `json:"type"`
-	BlockIDS           []string             `json:"blockIds"`
-	AggregationResults []*AggregationResult `json:"aggregationResults"`
-	Total              int                  `json:"total"`
+type ReducerResults struct {
+	// TODO: probably more types
+	CollectionGroupResults *CollectionGroupResults `json:"collection_group_results"`
 }
 
 // QueryCollectionResponse is json response for /api/v3/queryCollection
 type QueryCollectionResponse struct {
-	RecordMap *RecordMap             `json:"recordMap"`
-	Result    *QueryCollectionResult `json:"result"`
-	RawJSON   map[string]interface{} `json:"-"`
+	RecordMap *RecordMap `json:"recordMap"`
+	Result    struct {
+		Type string `json:"type"`
+		// TODO: there's probably more
+		ReducerResults *ReducerResults `json:"reducerResults"`
+	} `json:"result"`
+	RawJSON map[string]interface{} `json:"-"`
+}
+
+type LoaderReducer struct {
+	Type         string                 `json:"type"` //"reducer"
+	Reducers     map[string]interface{} `json:"reducers"`
+	Sort         []QuerySort            `json:"sort"`
+	Filter       map[string]interface{} `json:"filter"`
+	SearchQuery  string                 `json:"searchQuery"`
+	UserTimeZone string                 `json:"userTimeZone"` // e.g. "America/Los_Angeles" from User.Locale
+}
+
+func MakeLoaderReducer(query *Query) *LoaderReducer {
+	res := &LoaderReducer{
+		Type:     "reducer",
+		Reducers: map[string]interface{}{},
+	}
+	if query != nil {
+		res.Sort = query.Sort
+		res.Filter = query.Filter
+	}
+	res.Reducers[ReducerCollectionGroupResultsName] = &ReducerCollectionGroupResults{
+		Type:  "results",
+		Limit: 50,
+	}
+	// set some default value, should over-ride with User.TimeZone
+	res.UserTimeZone = "America/Los_Angeles"
+	return res
 }
 
 // QueryCollection executes a raw API call /api/v3/queryCollection
-func (c *Client) QueryCollection(collectionID, collectionViewID string, q json.RawMessage, user *User) (*QueryCollectionResponse, error) {
-
-	// Notion has this as 70 and re-does the query if user scrolls to see more
-	// of the table. We start with a bigger number because we want all the data
-	// // and there seems to be no downside
-	const startLimit = 256
-
-	req := &queryCollectionRequest{
-		CollectionID:     collectionID,
-		CollectionViewID: collectionViewID,
-		Query2:           q,
-	}
-	timeZone := "America/Los_Angeles"
-	if user != nil {
-		timeZone = user.TimeZone
-	}
-	req.Loader = &loader{
-		Type:         "table",
-		Limit:        startLimit,
-		UserTimeZone: timeZone,
-		// don't know what this is, Notion sets it to true
-		LoadContentCover: true,
-	}
-
-	apiURL := "/api/v3/queryCollection"
+func (c *Client) QueryCollection(req QueryCollectionRequest, query *Query) (*QueryCollectionResponse, error) {
+	req.Loader = MakeLoaderReducer(query)
 	var rsp QueryCollectionResponse
 	var err error
-	rsp.RawJSON, err = doNotionAPI(c, apiURL, req, &rsp)
+	apiURL := "/api/v3/queryCollection"
+	rsp.RawJSON, err = c.doNotionAPI(apiURL, req, &rsp)
 	if err != nil {
 		return nil, err
 	}
-
-	// fetch everything if a collection has more rows
-	// than we originally asked for
-	actualTotal := rsp.Result.Total
-	if actualTotal > startLimit {
-		rsp = QueryCollectionResponse{}
-		req.Loader.Limit = actualTotal
-		rsp.RawJSON, err = doNotionAPI(c, apiURL, req, &rsp)
-		if err != nil {
-			return nil, fmt.Errorf("Client.QueryCollection() 2nd fetch failed: %s", err)
-		}
-	}
+	// TODO: fetch more if exceeded limit
 	if err := ParseRecordMap(rsp.RecordMap); err != nil {
 		return nil, err
 	}

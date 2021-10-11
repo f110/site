@@ -1,13 +1,21 @@
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/google/uuid v1.1.1
+# github.com/google/uuid v1.3.0
 github.com/google/uuid
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/kjk/notionapi v0.0.0-20201230072046-b69038831038
+# github.com/json-iterator/go v1.1.12
+github.com/json-iterator/go
+# github.com/kjk/notionapi v0.0.0-20211011041705-67e75173f199
 ## explicit
 github.com/kjk/notionapi
 github.com/kjk/notionapi/tomarkdown
+# github.com/kjk/siser v0.0.0-20210621233355-17e67ed4384f
+github.com/kjk/siser
+# github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
+github.com/modern-go/concurrent
+# github.com/modern-go/reflect2 v1.0.2
+github.com/modern-go/reflect2
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/spf13/cobra v1.1.1
@@ -19,6 +27,8 @@ github.com/spf13/pflag
 ## explicit
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
+# github.com/tidwall/pretty v1.2.0
+github.com/tidwall/pretty
 # golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7
 ## explicit
 golang.org/x/xerrors
