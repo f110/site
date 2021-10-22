@@ -1,7 +1,7 @@
 ---
 title: iOS ショートカット用に API を作る
-date: 2021-10-23T09:00:00+09:00
-lastmod: 2021-10-23T00:57:00+09:00
+date: 2021-10-22T09:00:00+09:00
+lastmod: 2021-10-23T01:00:00+09:00
 isCJKLanguage: true
 tags: [Productivity, Notion]
 ---
