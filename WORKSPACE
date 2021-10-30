@@ -23,9 +23,9 @@ http_archive(
 
 http_archive(
     name = "build_stack_rules_hugo",
-    url = "https://github.com/f110/rules_hugo/archive/741c3abf624f2061c4118b265d34ecd9b75dd09b.zip",
-    sha256 = "28aea3459aa9c88f065ee3e851b9571ecc6cb2f504d4ef63b1244eaf3d704873",
-    strip_prefix = "rules_hugo-741c3abf624f2061c4118b265d34ecd9b75dd09b",
+    url = "https://github.com/stackb/rules_hugo/archive/2927451ff7fff708292eb7eb68ca278457c5dd78.zip",
+    sha256 = "f076f8098d95e4d3636918eed0b8f09c252f62ac992ba5e396f10c6cf2137849",
+    strip_prefix = "rules_hugo-2927451ff7fff708292eb7eb68ca278457c5dd78",
 )
 
 http_archive(
