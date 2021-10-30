@@ -19,6 +19,10 @@ hugo_site(
     static = glob(["static/**"]),
     theme = "//themes/pickles",
     verbose = True,
+    hugo = select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": "@hugo//:hugo",
+        "@io_bazel_rules_go//go/platform:darwin_arm64": "@hugo_darwin_arm64//:hugo",
+    }),
 )
 
 load("@rules_pkg//:pkg.bzl", "pkg_tar")

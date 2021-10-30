@@ -64,3 +64,9 @@ hugo_repository(
     version = "0.76.5",
     sha256 = "38f1d92fb8219168e684f0b82faef3aea0f3d1bd89752ec2179b41fb9eceea17",
 )
+
+hugo_repository(
+    name = "hugo_darwin_arm64",
+    version = "0.76.5",
+    sha256 = "50f7ce43657bf7cfb549c492d43edcfebf05098a23dda14b7dc9fee12711b4ac",
+)
