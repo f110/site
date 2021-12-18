@@ -1,0 +1,9 @@
+<h2 style="margin: 8px 0px 8px 0px">Recent posts</h2>
+<ul class="recent">
+{{ range first 5 (where .Site.Pages "Type" "posts") }}
+<li>
+  <a href="{{ .Permalink }}">{{ .Title }}</a>
+  <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" | safeHTML }}">{{ .Date.Format "Jan 2, 2006" }}</time>
+</li>
+{{ end }}
+</ul>

@@ -40,6 +40,7 @@
   <meta name="Hatena::Bookmark" content="nocomment" />
 
   <link rel="stylesheet" href="{{ .Site.BaseURL }}css/style.css" />
+  <link rel="stylesheet" href="{{ .Site.BaseURL }}css/override.css" />
   {{ range ($.Param "custom_css") -}}
     <link rel="stylesheet" href="{{ . | absURL }}">
   {{- end }}
