@@ -81,6 +81,7 @@ const (
 	BlockVideo                 = "video"
 	BlockCopyIndicator         = "copy_indicator"
 	BlockLinkToCollection      = "link_to_collection"
+	BlockLinkToPage            = "link_to_page"
 	BlockMiro                  = "miro"
 	BlockAlias                 = "alias"
 	BlockTransclusionReference = "transclusion_reference"
@@ -286,7 +287,7 @@ type Permission struct {
 	Type string `json:"type"`
 
 	// common to some permission types
-	Role string `json:"role"`
+	Role interface{} `json:"role"`
 
 	// if Type == "user_permission"
 	UserID *string `json:"user_id,omitempty"`
