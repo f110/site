@@ -62,6 +62,6 @@ MacPorts の libiconv はシンボルが変更されており OS のものとコ
     #!/usr/bin/env bash
     
     export PYTHONPATH=$HOME/local/sapling/lib/python3.10/site-packages
-    exec $HOME/local/sapling/bin/sl
+    exec $HOME/local/sapling/bin/sl $@
 
 もっといい方法があるのかもしれないがこれで動くのでとりあえずは満足している。
