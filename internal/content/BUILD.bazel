@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "content",
+    srcs = [
+        "article.go",
+        "content.go",
+    ],
+    importpath = "github.com/f110/site/internal/content",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/kjk/notionapi",
+        "//vendor/github.com/kjk/notionapi/tomarkdown",
+        "//vendor/golang.org/x/xerrors",
+        "//vendor/gopkg.in/yaml.v2:yaml_v2",
+    ],
+)
+
+go_test(
+    name = "content_test",
+    srcs = [
+        "article_test.go",
+        "content_test.go",
+    ],
+    data = glob(["testdata/**"]),
+    embed = [":content"],
+    deps = [
+        "//vendor/github.com/stretchr/testify/assert",
+        "//vendor/github.com/stretchr/testify/require",
+    ],
+)
