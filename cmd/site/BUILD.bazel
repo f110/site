@@ -2,12 +2,17 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "site_lib",
-    srcs = ["main.go"],
+    srcs = [
+        "main.go",
+        "update.go",
+    ],
     importpath = "github.com/f110/site/cmd/site",
     visibility = ["//visibility:private"],
     deps = [
-        "//pkg/cmd/site",
+        "//internal/content",
+        "//vendor/github.com/kjk/notionapi",
         "//vendor/github.com/spf13/cobra",
+        "//vendor/golang.org/x/xerrors",
     ],
 )
 

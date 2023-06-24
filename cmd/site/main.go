@@ -1,24 +1,26 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
-
-	"github.com/f110/site/pkg/cmd/site"
 )
 
-func command(args []string) error {
+func command() error {
 	rootCmd := &cobra.Command{Use: "site"}
-	site.Update(rootCmd)
+	Update(rootCmd)
 
-	rootCmd.SetArgs(args)
-	return rootCmd.Execute()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	return rootCmd.ExecuteContext(ctx)
 }
 
 func main() {
-	if err := command(os.Args[1:]); err != nil {
+	if err := command(); err != nil {
 		fmt.Fprintf(os.Stderr, "%+v", err)
 		os.Exit(1)
 	}
