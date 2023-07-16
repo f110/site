@@ -1,16 +1,13 @@
 package content
 
 import (
-	"bufio"
 	"bytes"
-	"net/url"
-	"path/filepath"
-	"strings"
+	"context"
 	"time"
 
-	"github.com/kjk/notionapi"
-	"github.com/kjk/notionapi/tomarkdown"
-	"golang.org/x/xerrors"
+	"go.f110.dev/notion-api/v3"
+	"go.f110.dev/notion-api/v3/markdown"
+	"go.f110.dev/xerrors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -35,41 +32,17 @@ type Article struct {
 	Files []ArticleFile
 }
 
-func (a *Article) GetBody(client *notionapi.Client) ([]byte, error) {
-	p, err := client.DownloadPage(a.ID)
+func (a *Article) GetBody(client *notion.Client) ([]byte, error) {
+	blocks, err := client.GetBlocks(context.Background(), a.ID)
 	if err != nil {
-		return nil, xerrors.Errorf(": %w", err)
-	}
-	for _, v := range p.Root().Content {
-		if v.Type == notionapi.BlockImage {
-			u, err := url.Parse(v.Source)
-			if err != nil {
-				return nil, xerrors.Errorf(": %w", err)
-			}
-			filename := filepath.Base(u.Path)
-			basename := strings.TrimSuffix(filename, filepath.Ext(filename))
-			newFilename := basename + "-" + v.FileIDs[0] + filepath.Ext(filename)
-			buf, err := fetchFile(client, v)
-			if err != nil {
-				return nil, xerrors.Errorf(": %w", err)
-			}
-			a.Files = append(a.Files, ArticleFile{
-				Filename: newFilename,
-				Data:     buf,
-			})
-		}
-	}
-	buf := tomarkdown.ToMarkdown(p)
-	s := bufio.NewScanner(bytes.NewReader(buf))
-	body := new(bytes.Buffer)
-	for i := 1; s.Scan(); i++ {
-		if i > 2 {
-			body.WriteString(s.Text())
-			body.WriteRune('\n')
-		}
+		return nil, xerrors.WithStack(err)
 	}
 
-	return body.Bytes(), nil
+	buf, err := markdown.Render(blocks)
+	if err != nil {
+		return nil, xerrors.WithStack(err)
+	}
+	return buf, nil
 }
 
 type ArticleMetadata struct {
@@ -102,7 +75,7 @@ func (a *Article) Render(body []byte) ([]byte, error) {
 	}
 	metaBuf, err := yaml.Marshal(meta)
 	if err != nil {
-		return nil, xerrors.Errorf(": %w", err)
+		return nil, xerrors.WithStack(err)
 	}
 
 	buf := new(bytes.Buffer)
@@ -115,209 +88,42 @@ func (a *Article) Render(body []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-type Database struct {
-	Properties   map[string]*Property
-	IdToProperty map[string]*Property
-}
-
-type Property struct {
-	ID   string
-	Name string
-	Type string
-}
-
-func GetArticles(client *notionapi.Client, id string) ([]*Article, error) {
-	page, err := client.DownloadPage(id)
+func GetArticles(client *notion.Client, id string) ([]*Article, error) {
+	pages, err := client.GetPages(context.Background(), id, nil, []*notion.Sort{{Property: "Updated", Direction: "descending"}})
 	if err != nil {
-		return nil, xerrors.Errorf(": %w", err)
-	}
-	db := newDatabase(page)
-
-	q := page.CollectionViewByID(notionapi.NewNotionID(page.CollectionViewRecords[0].ID)).Query
-	req := notionapi.QueryCollectionRequest{}
-	req.Collection.ID = page.CollectionRecords[0].ID
-	//req.Collection.SpaceID = page.CollectionRecords[0].Space.ID
-	req.CollectionView.ID = page.CollectionViewRecords[0].ID
-	//req.CollectionView.SpaceID = page.CollectionViewRecords[0].Space.ID
-	res, err := client.QueryCollection(req, q)
-	if err != nil {
-		return nil, xerrors.Errorf(": %w", err)
-	}
-	if err != nil {
-		return nil, xerrors.Errorf(": %w", err)
+		return nil, xerrors.WithStack(err)
 	}
 
 	articles := make([]*Article, 0)
-	for _, v := range res.Result.ReducerResults.CollectionGroupResults.BlockIds {
-		r := res.RecordMap.Blocks[v]
-		date := datePropertyValue(r.Block.Properties, db.Properties["Date"].ID)
-		toc := checkboxPropertyValue(r.Block.Properties, db.Properties["ToC"].ID)
-		sectionNumbering := checkboxPropertyValue(r.Block.Properties, db.Properties["Section Numbering"].ID)
-		freeze := checkboxPropertyValue(r.Block.Properties, db.Properties["Freeze"].ID)
-		draft := checkboxPropertyValue(r.Block.Properties, db.Properties["Draft"].ID)
-		title := textPropertyValue(r.Block.Properties, "title")
-		engTitle := textPropertyValue(r.Block.Properties, db.Properties["English Title"].ID)
-		tags := multiSelectPropertyValue(r.Block.Properties, db.Properties["Tags"].ID)
+	for _, v := range pages {
+		tags := collect(v.Properties["Tags"].MultiSelect, func(v *notion.Option) string { return v.Name })
+		var date *time.Time
+		if v.Properties["Date"].Date != nil {
+			date = &v.Properties["Date"].Date.Start.Time
+		}
 
 		articles = append(articles, &Article{
-			ID:               v,
-			Title:            title,
-			EnglishTitle:     engTitle,
+			ID:               v.ID,
+			Title:            v.Properties["Name"].Title[0].PlainText,
+			EnglishTitle:     v.Properties["English Title"].RichText[0].PlainText,
 			Tags:             tags,
-			SectionNumbering: sectionNumbering,
-			ToC:              toc,
-			Freeze:           freeze,
+			SectionNumbering: v.Properties["Section Numbering"].Checkbox,
+			ToC:              v.Properties["ToC"].Checkbox,
+			Freeze:           v.Properties["Freeze"].Checkbox,
 			Date:             date,
-			Draft:            draft,
-			CreatedAt:        r.Block.CreatedOn(),
-			UpdatedAt:        r.Block.LastEditedOn(),
+			Draft:            v.Properties["Draft"].Checkbox,
+			CreatedAt:        v.Properties["Created"].CreatedTime.Time,
+			UpdatedAt:        v.Properties["Updated"].LastEditedTime.Time,
 		})
 	}
 
 	return articles, nil
 }
 
-func datePropertyValue(properties map[string]interface{}, key string) *time.Time {
-	value := properties[key]
-	if value == nil {
-		return nil
+func collect[T, K any](in []T, f func(T) K) []K {
+	r := make([]K, 0)
+	for _, v := range in {
+		r = append(r, f(v))
 	}
-	v, ok := value.([]interface{})
-	if !ok {
-		return nil
-	}
-	v, ok = v[0].([]interface{})
-	if !ok {
-		return nil
-	}
-	v, ok = v[1].([]interface{})
-	if !ok {
-		return nil
-	}
-	v, ok = v[0].([]interface{})
-	if !ok {
-		return nil
-	}
-	d := v[1].(map[string]interface{})
-	if v, ok := d["type"]; !ok {
-		return nil
-	} else {
-		t, ok := v.(string)
-		if !ok {
-			return nil
-		}
-		if t != "date" {
-			return nil
-		}
-	}
-	sd, ok := d["start_date"]
-	if !ok {
-		return nil
-	}
-	startDateValue, ok := sd.(string)
-	if !ok {
-		return nil
-	}
-	startDate, err := time.Parse("2006-01-02", startDateValue)
-	if err != nil {
-		return nil
-	}
-	startDate = startDate.Local()
-
-	return &startDate
-}
-
-func checkboxPropertyValue(properties map[string]interface{}, key string) bool {
-	value := properties[key]
-	if value == nil {
-		return false
-	}
-	v, ok := value.([]interface{})
-	if !ok {
-		return false
-	}
-	v, ok = v[0].([]interface{})
-	if !ok {
-		return false
-	}
-	checkbox, ok := v[0].(string)
-	if !ok {
-		return false
-	}
-
-	if checkbox == "No" {
-		return false
-	}
-
-	return true
-}
-
-func textPropertyValue(properties map[string]interface{}, key string) string {
-	value := properties[key]
-	if value == nil {
-		return ""
-	}
-	v, ok := value.([]interface{})
-	if !ok {
-		return ""
-	}
-	v, ok = v[0].([]interface{})
-	if !ok {
-		return ""
-	}
-	text, ok := v[0].(string)
-	if !ok {
-		return ""
-	}
-
-	return text
-}
-
-func multiSelectPropertyValue(properties map[string]interface{}, key string) []string {
-	value := textPropertyValue(properties, key)
-	if value == "" {
-		return nil
-	}
-	return strings.Split(value, ",")
-}
-
-func newDatabase(page *notionapi.Page) *Database {
-	col := page.CollectionByID(notionapi.NewNotionID(page.CollectionRecords[0].ID))
-	prop := make(map[string]*Property)
-	idToProp := make(map[string]*Property)
-	for id, v := range col.Schema {
-		prop[v.Name] = &Property{ID: id, Name: v.Name, Type: v.Type}
-		idToProp[id] = prop[v.Name]
-	}
-
-	return &Database{Properties: prop, IdToProperty: idToProp}
-}
-
-func fetchFile(client *notionapi.Client, block *notionapi.Block) ([]byte, error) {
-	var u *url.URL
-	switch block.Type {
-	case notionapi.BlockImage:
-		values := &url.Values{}
-		values.Set("table", "block")
-		values.Set("id", block.ID)
-		values.Set("spaceId", block.RawJSON["space_id"].(string))
-		values.Set("userId", block.CreatedByID)
-		values.Set("cache", "v2")
-		imageURL, err := url.Parse("https://www.notion.so/image/" + url.PathEscape(block.Source))
-		if err != nil {
-			return nil, xerrors.Errorf(": %w", err)
-		}
-		imageURL.RawQuery = values.Encode()
-		u = imageURL
-	}
-	if u == nil {
-		return nil, nil
-	}
-
-	res, err := client.DownloadFile(u.String(), block)
-	if err != nil {
-		return nil, xerrors.Errorf(": %w", err)
-	}
-
-	return res.Data, nil
+	return r
 }

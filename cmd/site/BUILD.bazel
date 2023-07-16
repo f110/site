@@ -10,9 +10,10 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//internal/content",
-        "//vendor/github.com/kjk/notionapi",
         "//vendor/github.com/spf13/cobra",
-        "//vendor/golang.org/x/xerrors",
+        "//vendor/go.f110.dev/notion-api/v3:notion-api",
+        "//vendor/go.f110.dev/xerrors",
+        "//vendor/golang.org/x/oauth2",
     ],
 )
 
