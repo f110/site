@@ -10,8 +10,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/kjk/notionapi",
-        "//vendor/github.com/kjk/notionapi/tomarkdown",
-        "//vendor/golang.org/x/xerrors",
+        "//vendor/go.f110.dev/notion-api/v3:notion-api",
+        "//vendor/go.f110.dev/notion-api/v3/markdown",
+        "//vendor/go.f110.dev/xerrors",
         "//vendor/gopkg.in/yaml.v2:yaml_v2",
     ],
 )
@@ -27,5 +28,7 @@ go_test(
     deps = [
         "//vendor/github.com/stretchr/testify/assert",
         "//vendor/github.com/stretchr/testify/require",
+        "//vendor/go.f110.dev/notion-api/v3:notion-api",
+        "//vendor/golang.org/x/oauth2",
     ],
 )
